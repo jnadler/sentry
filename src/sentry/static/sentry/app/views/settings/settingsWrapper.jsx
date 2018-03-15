@@ -2,7 +2,6 @@ import $ from 'jquery';
 import React from 'react';
 import styled from 'react-emotion';
 import {withTheme} from 'emotion-theming';
-import Footer from '../../components/footer';
 
 const StyledSettingsWrapper = withTheme(
   styled.div`
@@ -28,12 +27,7 @@ class SettingsWrapper extends React.Component {
   }
 
   render() {
-    return (
-      <StyledSettingsWrapper>
-        {this.props.children}
-        <Footer />
-      </StyledSettingsWrapper>
-    );
+    return <StyledSettingsWrapper>{this.props.children}</StyledSettingsWrapper>;
   }
 }
 
