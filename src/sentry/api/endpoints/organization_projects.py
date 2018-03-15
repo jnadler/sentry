@@ -1,5 +1,8 @@
 from __future__ import absolute_import
 
+import six
+
+from django.db.models import Q
 from rest_framework.response import Response
 
 from sentry.api.base import DocSection
@@ -8,6 +11,7 @@ from sentry.api.paginator import OffsetPaginator
 from sentry.api.serializers import serialize
 from sentry.api.serializers.models.project import ProjectWithTeamSerializer
 from sentry.models import Project, Team
+from sentry.search.utils import tokenize_query
 from sentry.utils.apidocs import scenario, attach_scenarios
 
 ERR_INVALID_STATS_PERIOD = "Invalid stats_period. Valid choices are '', '24h', '14d', and '30d'"
@@ -78,6 +82,16 @@ class OrganizationProjectsEndpoint(OrganizationEndpoint):
             queryset = Project.objects.filter(
                 teams__in=team_list,
             ).prefetch_related('teams')
+
+        query = request.GET.get('query')
+        if query:
+            tokens = tokenize_query(query)
+            for key, value in six.iteritems(tokens):
+                if key == 'query':
+                    value = ' '.join(value)
+                    queryset = queryset.filter(Q(name__icontains=value) | Q(slug__icontains=value))
+                else:
+                    queryset = queryset.none()
 
         return self.paginate(
             request=request,
